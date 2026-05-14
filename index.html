@@ -554,7 +554,7 @@
     const legBefore = morning ? CFG.bikeMin   : CFG.walkMin;
     const legAfter  = morning ? CFG.walkMin   : CFG.bikeMin;
 
-    const [p0, p1, p2xml, fchgFromXml, a1, a2, a3, fchgToXml, rain] = await Promise.all([
+    const [p0, p1, p2xml, fchgFromXml, a1, a2, a3, fchgToXml, weather] = await Promise.all([
       irisPlan(from.eva, 0), irisPlan(from.eva, 1), irisPlan(from.eva, 2),
       irisFchg(from.eva),
       irisPlan(to.eva, 1),   irisPlan(to.eva, 2),   irisPlan(to.eva, 3),
