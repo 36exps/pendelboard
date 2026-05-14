@@ -77,11 +77,20 @@
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
+    .header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
     .header-clock {
       font-size: 26px;
       font-weight: 300;
       color: var(--text-muted);
       letter-spacing: 0.5px;
+    }
+    .header-weather {
+      font-size: 16px;
+      color: var(--text-muted);
     }
     .header-right {
       display: flex;
@@ -366,7 +375,9 @@
     document.getElementById('root').innerHTML = `
 <div class="dashboard">
   <div class="header">
-    <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
+    <div class="header-left">
+      <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
+    </div>
     <div class="header-right">
       <button class="icon-btn${directionOverride !== null ? ' active' : ''}" id="btn-dir"
         onclick="toggleDirection()" title="Richtung umschalten">${morning ? '→' : '←'}</button>
@@ -507,9 +518,12 @@
     return 60;
   }
 
-  // ── Rain API ──────────────────────────────────────────────────────
-  async function fetchRain(lat, lon) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&minutely_15=precipitation&timezone=Europe%2FBerlin&forecast_days=1`;
+  // ── Weather + Rain API (DWD ICON-D2 via Open-Meteo) ─────────────
+  async function fetchWeather(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,weather_code` +
+      `&minutely_15=precipitation` +
+      `&timezone=Europe%2FBerlin&forecast_days=1&models=icon_d2`;
     try {
       const r = await fetch(url);
       return r.ok ? r.json() : null;
@@ -545,7 +559,7 @@
       irisFchg(from.eva),
       irisPlan(to.eva, 1),   irisPlan(to.eva, 2),   irisPlan(to.eva, 3),
       irisFchg(to.eva),
-      fetchRain(from.lat, from.lon),
+      fetchWeather(from.lat, from.lon),
     ]);
 
     const fchgFromMap = parseFchg(fchgFromXml);
@@ -571,7 +585,7 @@
     const now = new Date();
     for (const t of trains) {
       t.legStart = addMin(t.currentTime, -legBefore);
-      t.rain     = rainInWindow(rain, t.legStart, t.currentTime);
+      t.rain     = rainInWindow(weather, t.legStart, t.currentTime);
       const arrInfo = findArrival(t, arrivalsByHash);
       if (arrInfo) {
         t.arrivalAtStation  = arrInfo.currentArrival;
@@ -588,7 +602,28 @@
       .filter(t => t.legStart >= addMin(now, -2))
       .slice(0, CFG.maxTrains);
 
-    return { morning, trains, rain, loadedAt: new Date() };
+    return { morning, trains, weather, loadedAt: new Date() };
+  }
+
+  // ── Weather helpers ───────────────────────────────────────────────
+  function wIcon(code) {
+    if (code === 0)  return '☀';
+    if (code <= 2)   return '⛅';
+    if (code === 3)  return '☁';
+    if (code <= 49)  return '🌫';
+    if (code <= 55)  return '🌦';  // drizzle
+    if (code <= 67)  return '🌧';  // rain
+    if (code <= 77)  return '🌨';  // snow
+    if (code <= 82)  return '🌦';  // showers
+    if (code <= 86)  return '🌨';  // snow showers
+    return '⛈';                    // thunderstorm
+  }
+
+  function weatherSnippet(wx) {
+    if (!wx?.current) return '';
+    const temp = Math.round(wx.current.temperature_2m);
+    const icon = wIcon(wx.current.weather_code ?? 0);
+    return `<span class="header-weather">${icon} ${temp}°</span>`;
   }
 
   // ── Render helpers ────────────────────────────────────────────────
@@ -623,7 +658,7 @@
 
   // ── Render ────────────────────────────────────────────────────────
   function render(data) {
-    const { morning, trains, loadedAt } = data;
+    const { morning, trains, weather, loadedAt } = data;
 
     applyDark(getDark());
 
@@ -642,7 +677,10 @@
     let html = `
 <div class="dashboard">
   <div class="header">
-    <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
+    <div class="header-left">
+      <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
+      ${weatherSnippet(weather)}
+    </div>
     <div class="header-right">
       <button class="icon-btn${dirActive ? ' active' : ''}" id="btn-dir"
         onclick="toggleDirection()"
@@ -669,6 +707,13 @@
       html += `
   <div class="top-grid">
     <div>
+      <div class="section-label">${legLabel}</div>
+      <div class="badge-area"></div>
+      <div class="big-time${missed ? ' dim' : ''}">${fmtTime(next.legStart)}</div>
+      ${rainBannerHTML(next, missed)}
+      ${arrStr}
+    </div>
+    <div class="top-right">
       <div class="section-label">Nächste mögliche Verbindung</div>
       <div class="badge-area">
         ${next.cancelled ? '<span class="cancelled-badge">Zug fällt aus</span>' : ''}
@@ -680,13 +725,6 @@
       <div class="next-route">${destLabel}${routeStr}</div>
       ${next.platform ? `<div class="next-platform">Gleis ${next.platform}</div>` : ''}
       ${next.hasHint && !next.cancelled ? `<div class="info-hint">Achtung: ${hintLabel(next.hasHint)}</div>` : ''}
-    </div>
-    <div class="top-right">
-      <div class="section-label">${legLabel}</div>
-      <div class="badge-area"></div>
-      <div class="big-time${missed ? ' dim' : ''}">${fmtTime(next.legStart)}</div>
-      ${rainBannerHTML(next, missed)}
-      ${arrStr}
     </div>
   </div>`;
 
@@ -716,7 +754,7 @@
     }
 
     html += `
-  <div class="footer">Aktualisiert: ${fmtTime(loadedAt)} Uhr · Zugdaten: DB IRIS · Wetter: Open-Meteo</div>
+  <div class="footer">Aktualisiert: ${fmtTime(loadedAt)} Uhr · Züge: DB IRIS · Wetter: DWD ICON-D2 via Open-Meteo</div>
 </div>`;
 
     document.getElementById('root').innerHTML = html;
