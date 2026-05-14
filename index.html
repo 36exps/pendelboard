@@ -5,73 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pendler Dashboard</title>
   <style>
-    /* ============================================================
-       CSS CUSTOM PROPERTIES (Light / Dark)
-       ============================================================ */
+    /* ── Custom properties ─────────────────────────────────────── */
     :root {
-      --bg:        #f0f0f0;
-      --card:      #ffffff;
-      --c1:        #1c1c1e;   /* big times, strong headings */
-      --c2:        #333333;   /* line names */
-      --c3:        #888888;   /* routes, secondary */
-      --c4:        #bbbbbb;   /* platform, faint labels */
-      --border:    #e8e8e8;
-      --border-s:  #f2f2f2;
-      --accent:    #e07800;   /* delays, orange warnings */
-      --err:       #cc0000;
-      --ok:        #4a8a5a;
-      --btn-bg:    #f0f0f0;
-      --btn-fg:    #666666;
-      --btn-act:   #1c1c1e;
-      --lbl:       #aaaaaa;   /* section-label */
+      --bg-page:   #f0f0f0;
+      --bg-card:   #ffffff;
+      --text-main: #222222;
+      --text-sub:  #444444;
+      --text-muted:#777777;
+      --text-dim:  #bbbbbb;
+      --text-warn: #e07800;
+      --border:    #ebebeb;
+      --border-faint: #f5f5f5;
+      --shadow:    rgba(0,0,0,0.07);
+      --btn-fg:    #cccccc;
+      --btn-bd:    #dddddd;
+      --btn-act-fg:#333333;
+      --btn-act-bg:#eeeeee;
+      --btn-act-bd:#aaaaaa;
+      --rb-yes-bg: #c23b00; --rb-yes-fg: #ffffff;
+      --rb-no-bg:  #f0f9f4; --rb-no-fg:  #4a8a5a; --rb-no-bd:  #c8ecd8;
     }
-    body.dark {
-      --bg:        #000000;
-      --card:      #1c1c1e;
-      --c1:        #f5f5f5;
-      --c2:        #cccccc;
-      --c3:        #888888;
-      --c4:        #555555;
-      --border:    #2c2c2e;
-      --border-s:  #242424;
-      --accent:    #f09030;
-      --err:       #ff5555;
-      --ok:        #60b870;
-      --btn-bg:    #2c2c2e;
-      --btn-fg:    #999999;
-      --btn-act:   #f5f5f5;
-      --lbl:       #666666;
+    html[data-dark] {
+      --bg-page:   #1c1c1e;
+      --bg-card:   #2c2c2e;
+      --text-main: #e5e5ea;
+      --text-sub:  #c7c7cc;
+      --text-muted:#8e8e93;
+      --text-dim:  #636366;
+      --text-warn: #e8a030;
+      --border:    #38383a;
+      --border-faint: #3a3a3c;
+      --shadow:    rgba(0,0,0,0.5);
+      --btn-fg:    #636366;
+      --btn-bd:    #48484a;
+      --btn-act-fg:#e5e5ea;
+      --btn-act-bg:#3a3a3c;
+      --btn-act-bd:#8e8e93;
+      --rb-yes-bg: #5c1800; --rb-yes-fg: #ffc8a0;
+      --rb-no-bg:  #0d2914; --rb-no-fg:  #5ab870; --rb-no-bd:  #1a4a22;
     }
 
-    /* ============================================================
-       BASE
-       ============================================================ */
+    /* ── Base ──────────────────────────────────────────────────── */
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-      background: var(--bg);
+      background: var(--bg-page);
+      color: var(--text-main);
       min-height: 100vh;
       display: flex;
       align-items: flex-start;
       justify-content: center;
       padding: 24px;
-      transition: background 0.3s;
     }
 
     .dashboard {
-      background: var(--card);
+      background: var(--bg-card);
       width: 100%;
       max-width: 1100px;
       padding: 36px 40px 28px;
-      border-radius: 8px;
-      box-shadow: 0 1px 8px rgba(0,0,0,0.1);
-      transition: background 0.3s;
+      border-radius: 6px;
+      box-shadow: 0 1px 6px var(--shadow);
     }
 
-    /* ============================================================
-       HEADER
-       ============================================================ */
+    /* ── Header ────────────────────────────────────────────────── */
     .header {
       display: flex;
       justify-content: space-between;
@@ -83,116 +80,99 @@
     .header-clock {
       font-size: 26px;
       font-weight: 300;
-      color: var(--c3);
+      color: var(--text-muted);
       letter-spacing: 0.5px;
-      flex-shrink: 0;
     }
     .header-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     .header-meta {
-      font-size: 12px;
-      color: var(--lbl);
+      font-size: 13px;
+      color: var(--text-dim);
       text-transform: uppercase;
-      letter-spacing: 1.2px;
-    }
-    /* Manual override indicator on mode text */
-    .header-meta.manual {
-      color: var(--accent);
+      letter-spacing: 1px;
     }
 
-    /* Small icon toggle buttons */
-    .ctrl-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* ── Icon buttons ──────────────────────────────────────────── */
+    .icon-btn {
+      background: none;
+      border: 1.5px solid var(--btn-bd);
+      color: var(--btn-fg);
+      border-radius: 50%;
       width: 30px;
       height: 30px;
-      border-radius: 6px;
-      border: none;
-      background: var(--btn-bg);
-      color: var(--btn-fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+      font-size: 14px;
+      line-height: 1;
       flex-shrink: 0;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
-    .ctrl-btn:hover   { background: var(--border); color: var(--btn-act); }
-    .ctrl-btn.active  { background: var(--accent);  color: white; }
+    .icon-btn:hover {
+      border-color: var(--btn-act-bd);
+      color: var(--btn-act-fg);
+    }
+    .icon-btn.active {
+      color: var(--btn-act-fg);
+      border-color: var(--btn-act-bd);
+      background: var(--btn-act-bg);
+    }
 
-    /* ============================================================
-       SECTION LABEL – same style both columns
-       ============================================================ */
+    /* ── Section labels ────────────────────────────────────────── */
     .section-label {
-      font-size: 11px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 1.8px;
-      color: var(--lbl);
+      color: var(--text-dim);
       margin-bottom: 12px;
     }
 
-    /* ============================================================
-       TOP GRID
-       ============================================================ */
+    /* ── Top grid ──────────────────────────────────────────────── */
     .top-grid {
       display: grid;
       grid-template-columns: 55% 45%;
-      margin-bottom: 36px;
+      gap: 0;
+      margin-bottom: 40px;
     }
 
-    /* Fixed-height badge zone – keeps both big-times vertically aligned */
-    .badge-zone {
-      min-height: 28px;
+    .badge-area {
+      min-height: 30px;
       display: flex;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
-    /* The two big departure times – identical size */
     .big-time {
       font-size: 52px;
       font-weight: 300;
-      color: var(--c1);
+      color: var(--text-main);
       line-height: 1;
       margin-bottom: 10px;
     }
     .big-time.dim {
-      opacity: 0.30;
+      opacity: 0.32;
       text-decoration: line-through;
     }
     .delay-badge {
       font-size: 20px;
-      color: var(--accent);
+      color: var(--text-warn);
       margin-left: 10px;
       font-weight: 400;
     }
 
-    /* ---- Left column ---- */
-    .next-line-name {
-      font-size: 22px;
-      color: var(--c2);
-      margin-bottom: 4px;
-    }
-    .next-route {
-      font-size: 15px;
-      color: var(--c3);
-      margin-bottom: 10px;
-    }
-    .next-platform {
-      font-size: 13px;
-      color: var(--c4);
-      margin-bottom: 4px;
-    }
-    .info-hint {
-      margin-top: 10px;
-      font-size: 14px;
-      color: var(--accent);
-    }
+    /* ── Left column ───────────────────────────────────────────── */
+    .next-line-name { font-size: 22px; color: var(--text-sub);   margin-bottom: 5px; }
+    .next-route     { font-size: 15px; color: var(--text-muted); margin-bottom: 12px; }
+    .next-platform  { font-size: 14px; color: var(--text-dim); }
+    .info-hint      { margin-top: 12px; font-size: 14px; color: var(--text-warn); }
     .cancelled-badge {
       display: inline-flex;
       align-items: center;
-      background: var(--err);
+      background: #cc0000;
       color: white;
       font-size: 11px;
       font-weight: 700;
@@ -202,126 +182,71 @@
       text-transform: uppercase;
     }
 
-    /* ---- Right column ---- */
+    /* ── Right column ──────────────────────────────────────────── */
     .top-right {
       padding-left: 40px;
-      border-left: 1px solid var(--border-s);
+      border-left: 1px solid var(--border-faint);
     }
 
-    /* Arrival block under rain banner */
-    .arrival-block {
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border-s);
-    }
-    .arrival-lbl {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--lbl);
-      margin-bottom: 4px;
-    }
-    .arrival-time-big {
-      font-size: 22px;
-      font-weight: 300;
-      color: var(--c2);
-      margin-bottom: 2px;
-    }
-    .arrival-detail {
-      font-size: 12px;
-      color: var(--c4);
-    }
-
-    /* ============================================================
-       RAIN BANNERS (prominent, top-right column)
-       ============================================================ */
+    /* ── Rain banner ───────────────────────────────────────────── */
     .rain-banner {
       border-radius: 6px;
-      padding: 12px 15px;
+      padding: 13px 16px;
       margin-top: 4px;
       font-size: 15px;
       font-weight: 600;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 4px;
     }
-    .rain-banner .rb-detail {
-      font-size: 12px;
+    .rain-banner .rain-detail { font-size: 12px; font-weight: 400; opacity: 0.85; }
+    .rain-banner.rain-yes  { background: var(--rb-yes-bg);  color: var(--rb-yes-fg); }
+    .rain-banner.rain-no   { background: var(--rb-no-bg);   color: var(--rb-no-fg);   border: 1px solid var(--rb-no-bd);  font-weight: 500; }
+    .rain-banner.rain-missed {
+      background: none;
+      color: var(--text-warn);
+      font-size: 13px;
       font-weight: 400;
-      opacity: 0.80;
+      padding: 6px 0;
+      margin-top: 6px;
+      border: none;
     }
-    /* Rain during window → RED */
-    .rain-banner.rb-yes   { background: #c23b00; color: white; }
-    .rain-banner.rb-now   { background: #ddeef8; color: #1a5c96; border: 1px solid #b0d0ec; }
-    .rain-banner.rb-soon  { background: #fff3e0; color: #b86000; border: 1px solid #ffd080; }
-    .rain-banner.rb-later { background: var(--border-s); color: var(--c3); border: 1px solid var(--border); font-weight: 400; font-size: 14px; }
-    .rain-banner.rb-no    { background: #edf7f0; color: #3a7a4a; border: 1px solid #bce0cb; font-weight: 500; }
-    .rain-banner.rb-missed{ background: none; color: var(--accent); font-size: 13px; font-weight: 400; padding: 0; margin-top: 8px; border: none; }
 
-    /* Dark-mode adjustments for rain banners */
-    body.dark .rain-banner.rb-yes   { background: #7a2000; }
-    body.dark .rain-banner.rb-now   { background: #0a2040; color: #80c0f0; border-color: #1a4060; }
-    body.dark .rain-banner.rb-soon  { background: #3a2000; color: #d4a040; border-color: #604000; }
-    body.dark .rain-banner.rb-later { background: var(--border-s); }
-    body.dark .rain-banner.rb-no    { background: #0a2018; color: #60b070; border-color: #1a4030; }
+    /* ── Arrival line ──────────────────────────────────────────── */
+    .arrival-line {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
 
-    /* ============================================================
-       MORE CONNECTIONS
-       ============================================================ */
-    .more-connections {
-      border-top: 1px solid var(--border);
-      padding-top: 26px;
-    }
-    .conn-item {
-      padding: 13px 0;
-      border-bottom: 1px solid var(--border-s);
-    }
+    /* ── More connections ──────────────────────────────────────── */
+    .more-connections { border-top: 1px solid var(--border); padding-top: 28px; }
+    .conn-item { padding: 14px 0; border-bottom: 1px solid var(--border-faint); }
     .conn-item:last-child { border-bottom: none; }
 
     .conn-top-row {
       display: flex;
       align-items: baseline;
-      gap: 16px;
-      margin-bottom: 3px;
+      gap: 20px;
+      margin-bottom: 4px;
       flex-wrap: wrap;
     }
-    .conn-leg-time  { font-size: 13px; color: var(--c4); }
-    .conn-arrival   { font-size: 13px; color: var(--c3); margin-left: auto; }
-    .conn-rain-lbl  { font-size: 13px; color: var(--c4); }
-    .conn-rain-lbl.wet  { color: var(--accent); font-weight: 600; }
-    .conn-rain-lbl.ok   { color: var(--ok); }
+    .conn-leg-time   { font-size: 14px; color: var(--text-dim); }
+    .conn-rain-label { font-size: 14px; color: var(--text-dim); }
+    .conn-rain-label.wet { color: var(--text-warn); font-weight: 600; }
+    .conn-rain-label.ok  { color: var(--rb-no-fg); }
+    .conn-train-row  { font-size: 17px; color: var(--text-sub); margin-bottom: 2px; }
+    .conn-train-row.cancelled-text { text-decoration: line-through; opacity: 0.45; }
+    .conn-delay      { font-size: 14px; color: var(--text-warn); margin-left: 6px; }
+    .conn-route      { font-size: 13px; color: var(--text-dim); }
+    .conn-arrival    { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
 
-    .conn-train-row {
-      font-size: 17px;
-      color: var(--c2);
-      margin-bottom: 2px;
-    }
-    .conn-train-row.cancelled { text-decoration: line-through; opacity: 0.40; }
-    .conn-delay { font-size: 13px; color: var(--accent); margin-left: 6px; }
-    .conn-route { font-size: 13px; color: var(--c4); }
+    /* ── States ────────────────────────────────────────────────── */
+    .state-box { padding: 60px 0; text-align: center; color: var(--text-dim); font-size: 18px; }
+    .state-box.error { color: #cc4444; }
+    .footer { font-size: 11px; color: var(--text-dim); text-align: right; margin-top: 24px; }
 
-    /* ============================================================
-       STATES / FOOTER
-       ============================================================ */
-    .state-box {
-      padding: 60px 0;
-      text-align: center;
-      color: var(--c4);
-      font-size: 18px;
-    }
-    .state-box.error { color: var(--err); }
-
-    .footer {
-      font-size: 11px;
-      color: var(--c4);
-      text-align: right;
-      margin-top: 24px;
-      opacity: 0.7;
-    }
-
-    /* ============================================================
-       RESPONSIVE
-       ============================================================ */
+    /* ── Responsive ────────────────────────────────────────────── */
     @media (max-width: 768px) {
       body { padding: 10px; }
       .dashboard { padding: 24px 20px 18px; }
@@ -329,31 +254,32 @@
       .top-right {
         border-left: none;
         padding-left: 0;
-        border-top: 1px solid var(--border-s);
+        border-top: 1px solid var(--border-faint);
         padding-top: 24px;
         margin-top: 24px;
       }
       .big-time { font-size: 46px; }
-      .conn-arrival { margin-left: 0; }
     }
 
     @media (max-width: 430px) {
       body { padding: 6px; }
       .dashboard { padding: 16px 14px 14px; border-radius: 4px; }
-      .header { margin-bottom: 22px; }
-      .header-clock { font-size: 19px; }
-      .header-meta  { font-size: 10px; }
-      .section-label { font-size: 10px; letter-spacing: 1.2px; }
+      .header { margin-bottom: 24px; }
+      .header-clock { font-size: 20px; }
+      .header-meta { font-size: 11px; letter-spacing: 0.5px; }
+      .section-label { font-size: 11px; letter-spacing: 1.2px; }
       .big-time { font-size: 38px; }
       .next-line-name { font-size: 18px; }
-      .next-route { font-size: 13px; }
-      .rain-banner { font-size: 13px; padding: 10px 13px; }
-      .arrival-time-big { font-size: 18px; }
-      .top-grid { margin-bottom: 24px; }
+      .next-route { font-size: 14px; }
+      .rain-banner { font-size: 14px; padding: 11px 13px; }
+      .top-grid { margin-bottom: 28px; }
+      .more-connections { padding-top: 20px; }
+      .conn-train-row { font-size: 15px; }
     }
 
     @media (max-width: 390px) {
       .big-time { font-size: 34px; }
+      .header-meta { display: none; }
     }
   </style>
 </head>
@@ -361,34 +287,26 @@
   <div id="root"></div>
 
   <script>
-  // ============================================================
-  //  CONFIG
-  // ============================================================
+  // ── Config ────────────────────────────────────────────────────────
   const CFG = {
-    giessen:      { eva: '8000124', lat: 50.5753, lon: 8.6774, name: 'Gießen Hbf' },
-    frankfurt:    { eva: '8000105', lat: 50.1069, lon: 8.6633, name: 'Frankfurt (Main) Hbf' },
-    bikeMin:  20,   // cycling to/from Gießen HBF
-    walkMin:  10,   // walking to/from Frankfurt HBF
-    darkStart: 21,  // auto dark mode from 21:00
-    darkEnd:    7,  // auto dark mode until 07:00
+    giessen:   { eva: '8000124', lat: 50.5753, lon: 8.6774 },
+    frankfurt: { eva: '8000105', lat: 50.1069, lon: 8.6633 },
+    bikeMin:   20,
+    walkMin:   10,
+    morningStart:  4,
+    morningEnd:   13,
+    autoDarkStart: 20,
+    autoDarkEnd:    7,
     dataRefreshMs:  5 * 60 * 1000,
     clockRefreshMs: 20 * 1000,
-    maxFetch:   7,  // fetch extra trains so we always have 4-5 visible ones
+    maxTrains: 5,
   };
 
-  // Journey-time fallback (minutes) when IRIS matching fails
-  const JOURNEY_FALLBACK = { ICE:45, IC:50, EC:50, RE:55, RB:65, S:60 };
+  // ── State ─────────────────────────────────────────────────────────
+  let directionOverride = null; // null=auto, true=morning, false=evening
+  let darkOverride      = null; // null=auto, true=dark, false=light
 
-  // ============================================================
-  //  APP STATE
-  // ============================================================
-  let manualDirection = null;  // null = auto | 'morning' | 'evening'
-  let manualDark      = null;  // null = auto | true | false
-  let appState        = null;
-
-  // ============================================================
-  //  UTILITIES
-  // ============================================================
+  // ── Utilities ─────────────────────────────────────────────────────
   const p2 = n => String(n).padStart(2, '0');
 
   function fmtTime(d) {
@@ -400,453 +318,431 @@
 
   function parseIrisTs(ts) {
     if (!ts || ts.length < 10) return null;
-    return new Date(2000 + +ts.slice(0,2), +ts.slice(2,4)-1,
-                    +ts.slice(4,6), +ts.slice(6,8), +ts.slice(8,10));
+    return new Date(
+      2000 + +ts.slice(0, 2), +ts.slice(2, 4) - 1, +ts.slice(4, 6),
+      +ts.slice(6, 8), +ts.slice(8, 10),
+    );
   }
 
-  // IRIS trip key: everything except the trailing stop-index
-  function tripKey(id) {
-    const parts = id.split('-');
-    return parts.slice(0, -1).join('-');
+  function irisDateHour(hourOffset) {
+    const t = new Date(Date.now() + hourOffset * 3_600_000);
+    return {
+      date: String(t.getFullYear()).slice(2) + p2(t.getMonth() + 1) + p2(t.getDate()),
+      hour: p2(t.getHours()),
+    };
   }
 
-  // Estimated journey time based on line prefix
-  function estJourney(line) {
-    const pfx = line.replace(/[^A-Z]/g, '').substring(0, 3);
-    return JOURNEY_FALLBACK[pfx] || 55;
+  function tripHash(id) {
+    if (!id) return id;
+    const i = id.lastIndexOf('-');
+    return i > 0 ? id.slice(0, i) : id;
   }
 
-  // ============================================================
-  //  DIRECTION + THEME
-  // ============================================================
-  function autoIsMorning() {
+  // ── Direction / dark helpers ──────────────────────────────────────
+  function autoMorning() {
     const h = new Date().getHours();
-    return h >= 4 && h < 13;
+    return h >= CFG.morningStart && h < CFG.morningEnd;
   }
-
-  function isMorning() {
-    return manualDirection !== null ? manualDirection === 'morning' : autoIsMorning();
+  function getMorning() {
+    return directionOverride !== null ? directionOverride : autoMorning();
   }
-
-  function isManualDir() { return manualDirection !== null; }
-
-  function isDark() {
-    if (manualDark !== null) return manualDark;
+  function autoDark() {
     const h = new Date().getHours();
-    return h >= CFG.darkStart || h < CFG.darkEnd;
+    return h >= CFG.autoDarkStart || h < CFG.autoDarkEnd;
+  }
+  function getDark() {
+    return darkOverride !== null ? darkOverride : autoDark();
+  }
+  function applyDark(dark) {
+    if (dark) document.documentElement.setAttribute('data-dark', '');
+    else       document.documentElement.removeAttribute('data-dark');
   }
 
-  function applyTheme() {
-    document.body.classList.toggle('dark', isDark());
+  function showLoadingState() {
+    applyDark(getDark());
+    const morning  = getMorning();
+    const modeText = morning ? 'Gießen → Frankfurt · Hinweg' : 'Frankfurt → Gießen · Rückweg';
+    const dark     = getDark();
+    document.getElementById('root').innerHTML = `
+<div class="dashboard">
+  <div class="header">
+    <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
+    <div class="header-right">
+      <button class="icon-btn${directionOverride !== null ? ' active' : ''}" id="btn-dir"
+        onclick="toggleDirection()" title="Richtung umschalten">${morning ? '→' : '←'}</button>
+      <button class="icon-btn${darkOverride !== null ? ' active' : ''}" id="btn-dark"
+        onclick="toggleDark()" title="Dark mode umschalten">${dark ? '☀' : '◑'}</button>
+      <div class="header-meta">${modeText}</div>
+    </div>
+  </div>
+  <div class="state-box">Verbindungen werden geladen …</div>
+</div>`;
   }
 
   function toggleDirection() {
-    const auto = autoIsMorning() ? 'morning' : 'evening';
-    if (manualDirection === null) {
-      // First press: switch to opposite of auto
-      manualDirection = auto === 'morning' ? 'evening' : 'morning';
-    } else {
-      // Second press: reset to auto
-      manualDirection = null;
-    }
+    directionOverride = directionOverride !== null ? null : !autoMorning();
+    showLoadingState();
     refresh();
   }
-
   function toggleDark() {
-    manualDark = !isDark();
-    applyTheme();
-    // Re-render header buttons
-    updateHeaderButtons();
+    darkOverride = darkOverride !== null ? null : !autoDark();
+    applyDark(getDark());
+    updateToggles();
+  }
+  function updateToggles() {
+    const btnDir  = document.getElementById('btn-dir');
+    const btnDark = document.getElementById('btn-dark');
+    if (!btnDir || !btnDark) return;
+    const morning = getMorning();
+    btnDir.textContent = morning ? '→' : '←';
+    btnDir.title = (morning ? 'Hinweg (Giessen→Frankfurt)' : 'Rückweg (Frankfurt→Giessen)') + ' · Umschalten';
+    btnDir.classList.toggle('active', directionOverride !== null);
+    const dark = getDark();
+    btnDark.textContent = dark ? '☀' : '◑';
+    btnDark.title = (dark ? 'Hellmodus' : 'Dunkelmodus') + ' · Umschalten';
+    btnDark.classList.toggle('active', darkOverride !== null);
   }
 
-  function updateHeaderButtons() {
-    const dirBtn  = document.getElementById('btn-dir');
-    const darkBtn = document.getElementById('btn-dark');
-    if (dirBtn)  dirBtn.classList.toggle('active', isManualDir());
-    if (darkBtn) darkBtn.classList.toggle('active', manualDark !== null);
-    // update dark icon
-    if (darkBtn) darkBtn.innerHTML = isDark() ? iconSun() : iconMoon();
-  }
+  // ── IRIS API ──────────────────────────────────────────────────────
+  const IRIS_BASE = 'https://iris.noncd.db.de/iris-tts/timetable';
 
-  // ============================================================
-  //  SVG ICONS
-  // ============================================================
-  function iconSwap() {
-    return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 4l4 4-4 4"/><line x1="3" y1="8" x2="21" y2="8"/><path d="M7 20l-4-4 4-4"/><line x1="21" y1="16" x2="3" y2="16"/></svg>`;
-  }
-  function iconMoon() {
-    return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-  }
-  function iconSun() {
-    return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-  }
-
-  // ============================================================
-  //  IRIS API
-  // ============================================================
-  const IRIS = 'https://iris.noncd.db.de/iris-tts/timetable';
-
-  function irisDateStr(d) {
-    return String(d.getFullYear()).slice(2) + p2(d.getMonth()+1) + p2(d.getDate());
-  }
-
-  async function irisPlanAt(eva, date) {
-    const url = `${IRIS}/plan/${eva}/${irisDateStr(date)}/${p2(date.getHours())}`;
-    try { const r = await fetch(url, {cache:'no-cache'}); return r.ok ? r.text() : '<timetable/>'; }
-    catch { return '<timetable/>'; }
+  async function irisPlan(eva, hourOffset) {
+    const { date, hour } = irisDateHour(hourOffset);
+    try {
+      const r = await fetch(`${IRIS_BASE}/plan/${eva}/${date}/${hour}`, { cache: 'no-cache' });
+      return r.ok ? r.text() : '<timetable/>';
+    } catch { return '<timetable/>'; }
   }
 
   async function irisFchg(eva) {
-    try { const r = await fetch(`${IRIS}/fchg/${eva}`, {cache:'no-cache'}); return r.ok ? r.text() : '<timetable/>'; }
-    catch { return '<timetable/>'; }
+    try {
+      const r = await fetch(`${IRIS_BASE}/fchg/${eva}`, { cache: 'no-cache' });
+      return r.ok ? r.text() : '<timetable/>';
+    } catch { return '<timetable/>'; }
   }
 
   function parseFchg(xml) {
     const doc = new DOMParser().parseFromString(xml, 'text/xml');
-    const m = {};
-    for (const s of doc.querySelectorAll('s')) m[s.getAttribute('id')] = s;
-    return m;
+    const map = {};
+    for (const s of doc.querySelectorAll('s')) map[s.getAttribute('id')] = s;
+    return map;
   }
 
-  // Parse departures from a single plan hour
-  function parseDepartures(xml, fchgMap, dirKeyword, cutoff) {
+  function parsePlan(xml, fchgMap, dirKeyword, cutoffTime) {
     const doc = new DOMParser().parseFromString(xml, 'text/xml');
-    const out = [];
+    const trains = [];
     for (const s of doc.querySelectorAll('s')) {
       const dp = s.querySelector('dp');
       if (!dp) continue;
       const ppth = dp.getAttribute('ppth') || '';
       if (!ppth.includes(dirKeyword)) continue;
-
       const id = s.getAttribute('id');
       const tl = s.querySelector('tl');
       const plannedTime = parseIrisTs(dp.getAttribute('pt'));
-      if (!plannedTime || plannedTime < cutoff) continue;
-
+      if (!plannedTime || plannedTime < cutoffTime) continue;
       let line = dp.getAttribute('l') || dp.getAttribute('fb') || '';
-      if (!line && tl) line = (tl.getAttribute('c')||'') + (tl.getAttribute('n') ? ' '+tl.getAttribute('n') : '');
-      line = line.trim();
-
-      let currentTime = plannedTime, cancelled = false, hasHint = false, platform = dp.getAttribute('pp')||'';
+      if (!line && tl) {
+        const c = tl.getAttribute('c') || '', n = tl.getAttribute('n') || '';
+        line = (c + (n ? ' ' + n : '')).trim();
+      }
+      let currentTime = plannedTime, cancelled = false, hasHint = false;
+      let platform = dp.getAttribute('pp') || '';
       const chg = fchgMap[id];
       if (chg) {
         const cdp = chg.querySelector('dp');
         if (cdp) {
-          const ct = parseIrisTs(cdp.getAttribute('ct'));
-          if (ct) currentTime = ct;
+          const ct = cdp.getAttribute('ct');
+          if (ct) currentTime = parseIrisTs(ct) || plannedTime;
           if (cdp.getAttribute('cs') === 'c') cancelled = true;
           const cp = cdp.getAttribute('cp'); if (cp) platform = cp;
         }
-        const hm = chg.querySelector('m[t="h"]');
-        if (hm) hasHint = hm.getAttribute('cat') || 'Information';
+        const hintMsg = chg.querySelector('m[t="h"]');
+        if (hintMsg) hasHint = hintMsg.getAttribute('cat') || 'Information';
       }
-
       const stops = ppth.split('|');
-      const ti = stops.findIndex(s => s.includes(dirKeyword));
-      const viaStops = ti > 0 ? stops.slice(0, ti).slice(-2).join(', ') : '';
-
-      out.push({
-        id, line, plannedTime, currentTime, cancelled, hasHint, platform, viaStops,
+      const targetIdx = stops.findIndex(s => s.includes(dirKeyword));
+      const before = targetIdx > 0 ? stops.slice(0, targetIdx) : [];
+      trains.push({
+        id, line, plannedTime, currentTime, cancelled, hasHint, platform,
+        viaStops: before.slice(-2).join(', '),
         delay: Math.max(0, Math.round((currentTime - plannedTime) / 60_000)),
-        tripKey: tripKey(id),
       });
     }
-    return out;
+    return trains;
   }
 
-  // Build tripKey → arrival-time map from destination plan + fchg
-  function buildArrivalMap(planXmls, fchgMap, fromKeyword) {
-    const map = {};
-    for (const xml of planXmls) {
-      const doc = new DOMParser().parseFromString(xml, 'text/xml');
-      for (const s of doc.querySelectorAll('s')) {
-        const ar = s.querySelector('ar');
-        if (!ar) continue;
-        // Only arrivals from our origin direction
-        if (fromKeyword && !(ar.getAttribute('ppth')||'').includes(fromKeyword)) continue;
-
-        const id = s.getAttribute('id');
-        const tk = tripKey(id);
-        const plannedAr = parseIrisTs(ar.getAttribute('pt'));
-        if (!plannedAr) continue;
-
-        let currentAr = plannedAr;
-        const chg = fchgMap[id];
-        if (chg) {
-          const car = chg.querySelector('ar');
-          if (car) {
-            const ct = parseIrisTs(car.getAttribute('ct'));
-            if (ct) currentAr = ct;
-          }
+  function parseArrivals(xml, fchgMap) {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const arrivals = {};
+    for (const s of doc.querySelectorAll('s')) {
+      const ar = s.querySelector('ar');
+      if (!ar) continue;
+      const id   = s.getAttribute('id');
+      const hash = tripHash(id);
+      if (arrivals[hash]) continue;
+      const plannedArrival = parseIrisTs(ar.getAttribute('pt'));
+      if (!plannedArrival) continue;
+      let currentArrival = plannedArrival;
+      const chg = fchgMap[id];
+      if (chg) {
+        const car = chg.querySelector('ar');
+        if (car) {
+          const ct = car.getAttribute('ct');
+          if (ct) currentArrival = parseIrisTs(ct) || plannedArrival;
         }
-        map[tk] = currentAr;
       }
+      arrivals[hash] = { plannedArrival, currentArrival };
     }
-    return map;
+    return arrivals;
   }
 
-  // ============================================================
-  //  OPEN-METEO RAIN
-  // ============================================================
+  function findArrival(dep, arrivalsByHash) {
+    return arrivalsByHash[tripHash(dep.id)] || null;
+  }
+
+  function estimateTravelMin(line) {
+    const u = line.toUpperCase();
+    if (/^(ICE?|EC)/.test(u)) return 55;
+    if (/^RB/.test(u))        return 68;
+    return 60;
+  }
+
+  // ── Rain API ──────────────────────────────────────────────────────
   async function fetchRain(lat, lon) {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&minutely_15=precipitation&timezone=Europe%2FBerlin&forecast_days=1`;
-    try { const r = await fetch(url); return r.ok ? r.json() : null; }
-    catch { return null; }
+    try {
+      const r = await fetch(url);
+      return r.ok ? r.json() : null;
+    } catch { return null; }
   }
 
-  function rainInWindow(rain, start, end) {
-    if (!rain?.minutely_15) return { wet: false, startsInMin: null };
+  function rainInWindow(rain, windowStart, windowEnd) {
+    if (!rain?.minutely_15) return { wet: false, startsAt: null };
     const { time, precipitation } = rain.minutely_15;
     for (let i = 0; i < time.length; i++) {
-      const s = new Date(time[i]), e = new Date(+s + 15*60_000);
-      if (precipitation[i] > 0.1 && e > start && s < end) {
-        return { wet: true, startsInMin: Math.max(0, Math.round((s - start) / 60_000)) };
+      const slotStart = new Date(time[i]);
+      const slotEnd   = new Date(+slotStart + 15 * 60_000);
+      if (precipitation[i] > 0.1 && slotEnd > windowStart && slotStart < windowEnd) {
+        // If the slot started before our window, rain begins at window start
+        const startsAt = slotStart < windowStart ? new Date(windowStart) : slotStart;
+        return { wet: true, startsAt };
       }
     }
-    return { wet: false, startsInMin: null };
+    return { wet: false, startsAt: null };
   }
 
-  function nextRainFromNow(rain) {
-    if (!rain?.minutely_15) return null;
-    const { time, precipitation } = rain.minutely_15;
-    const now = new Date(), horizon = addMin(now, 120);
-    for (let i = 0; i < time.length; i++) {
-      const s = new Date(time[i]);
-      if (s < now || s > horizon) continue;
-      if (precipitation[i] > 0.1) return Math.round((s - now) / 60_000);
-    }
-    return null;
-  }
-
-  function isCurrentlyRaining(rain) {
-    if (!rain?.minutely_15) return false;
-    const { time, precipitation } = rain.minutely_15;
-    const now = new Date();
-    for (let i = 0; i < time.length; i++) {
-      const s = new Date(time[i]), e = new Date(+s + 15*60_000);
-      if (s <= now && now < e) return precipitation[i] > 0.1;
-    }
-    return false;
-  }
-
-  // ============================================================
-  //  LOAD ALL DATA
-  // ============================================================
+  // ── Load all data ─────────────────────────────────────────────────
   async function loadAll() {
-    const morning   = isMorning();
+    const morning   = getMorning();
     const from      = morning ? CFG.giessen   : CFG.frankfurt;
-    const dest      = morning ? CFG.frankfurt : CFG.giessen;
+    const to        = morning ? CFG.frankfurt : CFG.giessen;
     const dirFilter = morning ? 'Frankfurt(Main)Hbf' : 'Gießen';
-    const fromKey   = morning ? 'Gießen' : 'Frankfurt(Main)Hbf'; // for arrival filter
-    const travelMin = morning ? CFG.bikeMin   : CFG.walkMin;
-    const now       = new Date();
+    const legBefore = morning ? CFG.bikeMin   : CFG.walkMin;
+    const legAfter  = morning ? CFG.walkMin   : CFG.bikeMin;
 
-    // Fetch 3 h of origin plan + fchg + rain simultaneously
-    const [p0, p1, p2xml, fchgXml, rain] = await Promise.all([
-      irisPlanAt(from.eva, now),
-      irisPlanAt(from.eva, addMin(now, 60)),
-      irisPlanAt(from.eva, addMin(now, 120)),
+    const [p0, p1, p2xml, fchgFromXml, a1, a2, a3, fchgToXml, rain] = await Promise.all([
+      irisPlan(from.eva, 0), irisPlan(from.eva, 1), irisPlan(from.eva, 2),
       irisFchg(from.eva),
+      irisPlan(to.eva, 1),   irisPlan(to.eva, 2),   irisPlan(to.eva, 3),
+      irisFchg(to.eva),
       fetchRain(from.lat, from.lon),
     ]);
 
-    const fchgMap = parseFchg(fchgXml);
-    const cutoff  = addMin(now, -3);
+    const fchgFromMap = parseFchg(fchgFromXml);
+    const fchgToMap   = parseFchg(fchgToXml);
+    const cutoff      = addMin(new Date(), -3);
 
     const seen = new Set();
-    const trains = [
-      ...parseDepartures(p0, fchgMap, dirFilter, cutoff),
-      ...parseDepartures(p1, fchgMap, dirFilter, cutoff),
-      ...parseDepartures(p2xml, fchgMap, dirFilter, cutoff),
+    let trains = [
+      ...parsePlan(p0,    fchgFromMap, dirFilter, cutoff),
+      ...parsePlan(p1,    fchgFromMap, dirFilter, cutoff),
+      ...parsePlan(p2xml, fchgFromMap, dirFilter, cutoff),
     ]
     .filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; })
     .sort((a, b) => a.currentTime - b.currentTime)
-    .slice(0, CFG.maxFetch);
+    .filter((t, _, arr) => arr.findIndex(u => u.currentTime.getTime() === t.currentTime.getTime()) === arr.indexOf(t));
 
-    // Annotate with bike/walk departure + rain window
+    const arrivalsByHash = {
+      ...parseArrivals(a1, fchgToMap),
+      ...parseArrivals(a2, fchgToMap),
+      ...parseArrivals(a3, fchgToMap),
+    };
+
+    const now = new Date();
     for (const t of trains) {
-      t.legStart = addMin(t.currentTime, -travelMin);
+      t.legStart = addMin(t.currentTime, -legBefore);
       t.rain     = rainInWindow(rain, t.legStart, t.currentTime);
-    }
-
-    // Fetch destination plan for arrival times
-    // Earliest arrival ≈ first train departure + 35 min
-    const firstDep = trains[0]?.currentTime || now;
-    const arrStart = addMin(firstDep, 35);
-    const [dp0, dp1, destFchgXml] = await Promise.all([
-      irisPlanAt(dest.eva, arrStart),
-      irisPlanAt(dest.eva, addMin(arrStart, 60)),
-      irisFchg(dest.eva),
-    ]);
-    const destFchgMap  = parseFchg(destFchgXml);
-    const arrivalMap   = buildArrivalMap([dp0, dp1], destFchgMap, fromKey);
-
-    // Annotate trains with arrival times
-    const finalMin = morning ? CFG.walkMin : CFG.bikeMin; // last leg after train
-    for (const t of trains) {
-      const trainArrival = arrivalMap[t.tripKey];
-      if (trainArrival) {
-        t.trainArrival = trainArrival;
-        t.finalArrival = addMin(trainArrival, finalMin);
-        t.arrivalReal  = true;
+      const arrInfo = findArrival(t, arrivalsByHash);
+      if (arrInfo) {
+        t.arrivalAtStation  = arrInfo.currentArrival;
+        t.arrivalIsEstimate = false;
       } else {
-        // Fallback estimate
-        const journey = estJourney(t.line);
-        t.trainArrival = addMin(t.currentTime, journey);
-        t.finalArrival = addMin(t.trainArrival, finalMin);
-        t.arrivalReal  = false;
+        t.arrivalAtStation  = addMin(t.currentTime, estimateTravelMin(t.line));
+        t.arrivalIsEstimate = true;
       }
+      t.arrivalAtFinal = addMin(t.arrivalAtStation, legAfter);
     }
 
-    return { morning, trains, rain, travelMin, finalMin, loadedAt: new Date() };
+    // Remove fully missed connections (legStart more than 2 min in the past)
+    trains = trains
+      .filter(t => t.legStart >= addMin(now, -2))
+      .slice(0, CFG.maxTrains);
+
+    return { morning, trains, rain, loadedAt: new Date() };
   }
 
-  // ============================================================
-  //  RENDER HELPERS
-  // ============================================================
+  // ── Render helpers ────────────────────────────────────────────────
   function hintLabel(cat) {
     if (cat === 'Störung')     return 'Störung gemeldet';
     if (cat === 'Bauarbeiten') return 'Bauarbeiten';
     return 'aktuelle Hinweise';
   }
 
-  function rainBannerHTML(train, genNextRain, curRaining, missed) {
-    if (missed) return '<div class="rain-banner rb-missed">Abfahrtszeit verpasst</div>';
-    if (train.rain.wet) {
-      const d = train.rain.startsInMin === 0
-        ? 'Regen ab Abfahrt'
-        : `Regen nach ${train.rain.startsInMin} min`;
-      return `<div class="rain-banner rb-yes">Regenkleidung benötigt<span class="rb-detail">${d}</span></div>`;
+  function connRainLabel(t) {
+    if (t.rain.wet) {
+      const at = t.rain.startsAt;
+      const text = at <= t.legStart ? 'Regen ab Abfahrt' : `Regen ab ${fmtTime(at)}`;
+      return { cls: 'wet', text };
     }
-    if (curRaining)                            return '<div class="rain-banner rb-now">Aktuell Regen · Fahrt voraussichtlich trocken</div>';
-    if (genNextRain !== null && genNextRain <= 30) return `<div class="rain-banner rb-soon">Regen in ca. ${genNextRain} min</div>`;
-    if (genNextRain !== null)                   return `<div class="rain-banner rb-later">Regen in ca. ${genNextRain} min</div>`;
-    return '<div class="rain-banner rb-no">Kein Regen erwartet</div>';
+    return { cls: 'ok', text: 'Kein Regen' };
   }
 
-  function connRainLabel(t, genNextRain, curRaining) {
-    if (t.rain.wet) return { cls:'wet', text: t.rain.startsInMin === 0 ? 'Regen' : `Regen in ${t.rain.startsInMin} min` };
-    if (curRaining)  return { cls:'',   text: 'Aktuell Regen' };
-    if (genNextRain !== null && genNextRain <= 60) return { cls:'', text: `Regen in ${genNextRain} min` };
-    return { cls:'ok', text: 'Kein Regen' };
+  function rainBannerHTML(train, missed) {
+    if (missed) {
+      return '<div class="rain-banner rain-missed">Abfahrtszeit verpasst</div>';
+    }
+    if (train.rain.wet) {
+      const at = train.rain.startsAt;
+      const detail = at <= train.legStart
+        ? 'Regen ab Abfahrt'
+        : `Regen ab ${fmtTime(at)} Uhr`;
+      return `<div class="rain-banner rain-yes">Regenkleidung benötigt<span class="rain-detail">${detail}</span></div>`;
+    }
+    return '<div class="rain-banner rain-no">Kein Regen während der Fahrt</div>';
   }
 
-  function arrivalBlockHTML(train, morning) {
-    const dest = morning ? 'Frankfurt' : 'Zuhause';
-    const approx = train.arrivalReal ? '' : 'ca. ';
-    const detail = train.arrivalReal
-      ? `Zug an ${fmtTime(train.trainArrival)} + ${morning ? CFG.walkMin : CFG.bikeMin} min`
-      : `Schätzung (kein Echtzeitdaten)`;
-    return `<div class="arrival-block">
-  <div class="arrival-lbl">Ankunft ${dest}</div>
-  <div class="arrival-time-big">${approx}${fmtTime(train.finalArrival)}</div>
-  <div class="arrival-detail">${detail}</div>
-</div>`;
-  }
-
-  // ============================================================
-  //  RENDER
-  // ============================================================
+  // ── Render ────────────────────────────────────────────────────────
   function render(data) {
-    if (!data) return;
-    const { morning, trains, rain, loadedAt } = data;
-    const curRaining  = isCurrentlyRaining(rain);
-    const genNextRain = nextRainFromNow(rain);
-    const now         = new Date();
-    const legLabel    = morning ? 'Mit dem Fahrrad losfahren um' : 'Zu Fuß zum Bahnhof um';
-    const destLabel   = morning ? 'Frankfurt (Main) Hbf' : 'Gießen Hbf';
-    const modeAuto    = autoIsMorning() ? 'morning' : 'evening';
-    const modeText    = morning ? 'Gießen → Frankfurt' : 'Frankfurt → Gießen';
+    const { morning, trains, loadedAt } = data;
 
-    // Filter: remove trains missed by >2 min
-    const visible = trains.filter(t => t.legStart >= addMin(now, -2));
+    applyDark(getDark());
 
-    const next  = visible[0];
-    const more  = visible.slice(1, 5); // show up to 4 more
+    const legLabel     = morning ? 'Mit dem Fahrrad losfahren um' : 'Zu Fuß zum Bahnhof um';
+    const legVerb      = morning ? 'Losfahren um' : 'Zu Fuß um';
+    const destLabel    = morning ? 'Frankfurt (Main) Hbf' : 'Gießen Hbf';
+    const arrivalLabel = morning ? 'Ankunft Büro' : 'Ankunft Zuhause';
+    const modeText     = morning ? 'Gießen → Frankfurt · Hinweg' : 'Frankfurt → Gießen · Rückweg';
 
-    const dirBtnClass = isManualDir() ? 'active' : '';
-    const drkBtnClass = manualDark !== null ? 'active' : '';
+    const dark       = getDark();
+    const dirActive  = directionOverride !== null;
+    const darkActive = darkOverride !== null;
+    const dirIcon    = morning ? '→' : '←';
+    const darkIcon   = dark ? '☀' : '◑';
 
     let html = `
 <div class="dashboard">
   <div class="header">
-    <div class="header-clock" id="js-clock">${fmtTime(now)} Uhr</div>
+    <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
     <div class="header-right">
-      <span class="header-meta${isManualDir() ? ' manual' : ''}">${modeText}</span>
-      <button id="btn-dir"  class="ctrl-btn ${dirBtnClass}" onclick="toggleDirection()" title="Richtung wechseln">${iconSwap()}</button>
-      <button id="btn-dark" class="ctrl-btn ${drkBtnClass}" onclick="toggleDark()"      title="Dark Mode">${isDark() ? iconSun() : iconMoon()}</button>
+      <button class="icon-btn${dirActive ? ' active' : ''}" id="btn-dir"
+        onclick="toggleDirection()"
+        title="${morning ? 'Hinweg' : 'Rückweg'} · Umschalten">${dirIcon}</button>
+      <button class="icon-btn${darkActive ? ' active' : ''}" id="btn-dark"
+        onclick="toggleDark()"
+        title="${dark ? 'Hellmodus' : 'Dunkelmodus'} · Umschalten">${darkIcon}</button>
+      <div class="header-meta">${modeText}</div>
     </div>
   </div>`;
 
-    if (!next) {
-      html += `<div class="state-box">Keine erreichbaren Verbindungen in den nächsten 3 Stunden.</div>`;
+    const now = new Date();
+
+    if (trains.length === 0) {
+      html += `<div class="state-box">Keine Verbindungen in den nächsten 3 Stunden gefunden.</div>`;
     } else {
+      const next = trains[0];
       const missed     = next.legStart < now;
       const delayBadge = next.delay > 0 ? `<span class="delay-badge">+${next.delay} min</span>` : '';
-      const routeStr   = next.viaStops ? `über ${next.viaStops}` : '';
+      const routeStr   = next.viaStops ? ` über ${next.viaStops}` : '';
+      const arrStr     = next.cancelled ? '' :
+        `<div class="arrival-line">${arrivalLabel}: ${next.arrivalIsEstimate ? 'ca. ' : ''}${fmtTime(next.arrivalAtFinal)} Uhr</div>`;
 
       html += `
   <div class="top-grid">
-
-    <!-- LEFT: train -->
     <div>
-      <div class="section-label">Nächste ${missed ? 'angezeigte' : 'mögliche'} Verbindung</div>
-      <div class="badge-zone">
+      <div class="section-label">Nächste mögliche Verbindung</div>
+      <div class="badge-area">
         ${next.cancelled ? '<span class="cancelled-badge">Zug fällt aus</span>' : ''}
       </div>
       <div class="big-time${next.cancelled ? ' dim' : ''}">
         ${fmtTime(next.currentTime)}${delayBadge}
       </div>
       <div class="next-line-name">${next.line}</div>
-      <div class="next-route">${destLabel}${routeStr ? ' ' + routeStr : ''}</div>
+      <div class="next-route">${destLabel}${routeStr}</div>
       ${next.platform ? `<div class="next-platform">Gleis ${next.platform}</div>` : ''}
       ${next.hasHint && !next.cancelled ? `<div class="info-hint">Achtung: ${hintLabel(next.hasHint)}</div>` : ''}
     </div>
-
-    <!-- RIGHT: bike/walk + rain + arrival -->
     <div class="top-right">
       <div class="section-label">${legLabel}</div>
-      <div class="badge-zone"></div>
+      <div class="badge-area"></div>
       <div class="big-time${missed ? ' dim' : ''}">${fmtTime(next.legStart)}</div>
-      ${rainBannerHTML(next, genNextRain, curRaining, missed)}
-      ${missed ? '' : arrivalBlockHTML(next, morning)}
+      ${rainBannerHTML(next, missed)}
+      ${arrStr}
     </div>
-
   </div>`;
 
+      const more = trains.slice(1);
       if (more.length > 0) {
         html += `<div class="more-connections"><div class="section-label">Weitere Verbindungen</div>`;
         for (const t of more) {
-          const tMissed = t.legStart < now;
           const dBadge  = t.delay > 0 ? `<span class="conn-delay">+${t.delay} min</span>` : '';
-          const rl      = connRainLabel(t, genNextRain, curRaining);
-          const arrTxt  = t.finalArrival ? `→ ${t.arrivalReal ? '' : '~'}${fmtTime(t.finalArrival)}` : '';
-
+          const rl      = connRainLabel(t);
+          const arrConn = t.cancelled ? '' :
+            `<div class="conn-arrival">${arrivalLabel}: ${t.arrivalIsEstimate ? 'ca. ' : ''}${fmtTime(t.arrivalAtFinal)} Uhr</div>`;
           html += `
-<div class="conn-item"${tMissed ? ' style="opacity:0.40"' : ''}>
+<div class="conn-item">
   <div class="conn-top-row">
-    <span class="conn-leg-time">ab ${fmtTime(t.legStart)}${tMissed ? ' <small>(verpasst)</small>' : ''}</span>
-    ${arrTxt ? `<span class="conn-arrival">${arrTxt}</span>` : ''}
-    ${!tMissed ? `<span class="conn-rain-lbl ${rl.cls}">${rl.text}</span>` : ''}
+    <span class="conn-leg-time">${legVerb} ${fmtTime(t.legStart)}</span>
+    <span class="conn-rain-label ${rl.cls}">${rl.text}</span>
   </div>
-  <div class="conn-train-row${t.cancelled ? ' cancelled' : ''}">
-    ${fmtTime(t.currentTime)}${dBadge} · ${t.line}
+  <div class="conn-train-row${t.cancelled ? ' cancelled-text' : ''}">
+    ${fmtTime(t.currentTime)}${dBadge}&ensp;&middot;&ensp;${t.line}
   </div>
   <div class="conn-route">${destLabel}${t.viaStops ? ' · ' + t.viaStops : ''}</div>
+  ${arrConn}
 </div>`;
         }
         html += `</div>`;
       }
     }
 
-    html += `<div class="footer">Aktualisiert ${fmtTime(loadedAt)} · DB IRIS · Open-Meteo</div></div>`;
+    html += `
+  <div class="footer">Aktualisiert: ${fmtTime(loadedAt)} Uhr · Zugdaten: DB IRIS · Wetter: Open-Meteo</div>
+</div>`;
+
     document.getElementById('root').innerHTML = html;
+    updateToggles();
   }
 
   function renderError(msg) {
+    const dark    = getDark();
+    const dirIcon = getMorning() ? '→' : '←';
+    const dkIcon  = dark ? '☀' : '◑';
+    applyDark(dark);
     document.getElementById('root').innerHTML = `
 <div class="dashboard">
-  <div class="state-box error">Fehler beim Laden.<br><small style="opacity:0.7">${msg}</small></div>
+  <div class="header">
+    <div class="header-clock" id="js-clock">${fmtTime(new Date())} Uhr</div>
+    <div class="header-right">
+      <button class="icon-btn${directionOverride !== null ? ' active' : ''}" id="btn-dir"
+        onclick="toggleDirection()" title="Richtung umschalten">${dirIcon}</button>
+      <button class="icon-btn${darkOverride !== null ? ' active' : ''}" id="btn-dark"
+        onclick="toggleDark()" title="Dark mode umschalten">${dkIcon}</button>
+    </div>
+  </div>
+  <div class="state-box error">
+    Fehler beim Laden der Daten.<br>
+    <small style="font-size:14px;opacity:0.7">${msg}</small>
+  </div>
 </div>`;
   }
 
@@ -855,29 +751,30 @@
     if (el) el.textContent = fmtTime(new Date()) + ' Uhr';
   }
 
-  // ============================================================
-  //  MAIN LOOP
-  // ============================================================
+  // ── Main loop ─────────────────────────────────────────────────────
+  let refreshGen = 0;
+
   async function refresh() {
+    const myGen = ++refreshGen;
     try {
-      appState = await loadAll();
-      applyTheme();
-      render(appState);
+      const data = await loadAll();
+      if (myGen !== refreshGen) return; // a newer refresh started; discard
+      render(data);
     } catch (e) {
+      if (myGen !== refreshGen) return;
       renderError(e.message || String(e));
     }
   }
 
-  // Initial loading state
-  applyTheme();
+  applyDark(getDark());
   document.getElementById('root').innerHTML = `
 <div class="dashboard">
   <div class="state-box">Verbindungen werden geladen …</div>
 </div>`;
 
   refresh();
-  setInterval(refresh,      CFG.dataRefreshMs);
-  setInterval(updateClock,  CFG.clockRefreshMs);
+  setInterval(refresh, CFG.dataRefreshMs);
+  setInterval(updateClock, CFG.clockRefreshMs);
   </script>
 </body>
 </html>
