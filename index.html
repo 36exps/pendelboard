@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1024, initial-scale=1">
+  <title>Pendler Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .dashboard {
+      background: white;
+      width: 100%;
+      max-width: 1100px;
+      padding: 36px 40px 28px;
+      border-radius: 6px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+
+    /* ---- Header ---- */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 36px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #ebebeb;
+    }
+    .header-clock {
+      font-size: 26px;
+      font-weight: 300;
+      color: #777;
+      letter-spacing: 0.5px;
+    }
+    .header-meta {
+      font-size: 13px;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ---- Section label ---- */
+    .section-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.8px;
+      color: #bbb;
+      margin-bottom: 14px;
+    }
+
+    /* ---- Top grid: left + right ---- */
+    .top-grid {
+      display: grid;
+      grid-template-columns: 55% 45%;
+      gap: 0;
+      margin-bottom: 40px;
+    }
+
+    /* Left: next connection */
+    .next-departure-time {
+      font-size: 52px;
+      font-weight: 300;
+      color: #222;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .next-departure-time .delay-badge {
+      font-size: 22px;
+      color: #e07800;
+      margin-left: 10px;
+      font-weight: 400;
+    }
+    .next-line-name {
+      font-size: 22px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .next-route {
+      font-size: 16px;
+      color: #999;
+      margin-bottom: 14px;
+    }
+    .next-platform {
+      font-size: 14px;
+      color: #bbb;
+    }
+    .info-hint {
+      margin-top: 14px;
+      font-size: 15px;
+      color: #e07800;
+    }
+    .cancelled-badge {
+      display: inline-block;
+      background: #cc0000;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    /* Right: bike / walk departure */
+    .right-col {
+      padding-left: 40px;
+      border-left: 1px solid #f0f0f0;
+    }
+    .leg-label {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    .leg-time {
+      font-size: 64px;
+      font-weight: 300;
+      color: #222;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .rain-status {
+      font-size: 15px;
+      color: #999;
+      margin-bottom: 10px;
+      min-height: 22px;
+    }
+    .rain-status.raining {
+      color: #3a7abf;
+    }
+    .rain-warning {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      color: #cc0000;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ---- More connections ---- */
+    .more-connections {
+      border-top: 1px solid #ebebeb;
+      padding-top: 28px;
+    }
+    .conn-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .conn-item:last-child { border-bottom: none; }
+
+    .conn-top-row {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      margin-bottom: 4px;
+    }
+    .conn-leg-time {
+      font-size: 14px;
+      color: #aaa;
+    }
+    .conn-rain-label {
+      font-size: 14px;
+      color: #aaa;
+    }
+    .conn-rain-label.wet { color: #e07800; }
+    .conn-rain-label.ok  { color: #4caf50; }
+
+    .conn-train-row {
+      font-size: 17px;
+      color: #333;
+    }
+    .conn-train-row.cancelled-text {
+      text-decoration: line-through;
+      opacity: 0.45;
+    }
+    .conn-delay { font-size: 14px; color: #e07800; margin-left: 6px; }
+    .conn-route {
+      font-size: 13px;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    /* ---- States ---- */
+    .state-box {
+      padding: 60px 0;
+      text-align: center;
+      color: #bbb;
+      font-size: 18px;
+    }
+    .state-box.error { color: #cc4444; }
+
+    .footer {
+      font-size: 11px;
+      color: #d0d0d0;
+      text-align: right;
+      margin-top: 22px;
+    }
+
+    /* iPad touch improvements */
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .dashboard { padding: 24px 20px 18px; }
+      .top-grid { grid-template-columns: 1fr; gap: 28px; }
+      .right-col { padding-left: 0; border-left: none; border-top: 1px solid #f0f0f0; padding-top: 24px; }
+      .leg-time { font-size: 52px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+  // =========================================================
+  //  CONFIGURATION
+  // =========================================================
+  const CFG = {
+    giessen:   { eva: '8000124', lat: 50.5753, lon: 8.6774, name: 'Gießen Hbf' },
+    frankfurt: { eva: '8000105', lat: 50.1069, lon: 8.6633, name: 'Frankfurt (Main) Hbf' },
+    bikeMin:   15,   // bike ride to Gießen HBF
+    walkMin:   10,   // walk from Frankfurt HBF to office (or reverse)
+    morningStart: 4,  // hour (inclusive)
+    morningEnd:  13,  // hour (exclusive)  → 04:00–12:59 = morning
+    dataRefreshMs: 5 * 60 * 1000,  // reload API data every 5 min
+    clockRefreshMs: 20 * 1000,     // update clock every 20 s
+    maxTrains: 5,
+  };
+
+  // =========================================================
+  //  UTILITIES
+  // =========================================================
+  const p2 = n => String(n).padStart(2, '0');
+
+  function fmtTime(d) {
+    if (!d) return '--:--';
+    return p2(d.getHours()) + ':' + p2(d.getMinutes());
+  }
+
+  function addMin(d, m) {
+    return new Date(d.getTime() + m * 60_000);
+  }
+
+  // Parse IRIS timestamp: "YYMMDDHHMM" (10 chars)
+  function parseIrisTs(ts) {
+    if (!ts || ts.length < 10) return null;
+    return new Date(
+      2000 + +ts.slice(0, 2),
+      +ts.slice(2, 4) - 1,
+      +ts.slice(4, 6),
+      +ts.slice(6, 8),
+      +ts.slice(8, 10),
+    );
+  }
+
+  function isMorning() {
+    const h = new Date().getHours();
+    return h >= CFG.morningStart && h < CFG.morningEnd;
+  }
+
+  // Return { date: "YYMMDD", hour: "HH" } for now + hourOffset
+  function irisDateHour(hourOffset) {
+    const t = new Date(Date.now() + hourOffset * 3_600_000);
+    return {
+      date: String(t.getFullYear()).slice(2) + p2(t.getMonth() + 1) + p2(t.getDate()),
+      hour: p2(t.getHours()),
+    };
+  }
+
+  // =========================================================
+  //  IRIS API
+  // =========================================================
+  const IRIS_BASE = 'https://iris.noncd.db.de/iris-tts/timetable';
+
+  async function irisPlan(eva, hourOffset) {
+    const { date, hour } = irisDateHour(hourOffset);
+    const url = `${IRIS_BASE}/plan/${eva}/${date}/${hour}`;
+    try {
+      const r = await fetch(url, { cache: 'no-cache' });
+      return r.ok ? r.text() : '<timetable/>';
+    } catch { return '<timetable/>'; }
+  }
+
+  async function irisFchg(eva) {
+    try {
+      const r = await fetch(`${IRIS_BASE}/fchg/${eva}`, { cache: 'no-cache' });
+      return r.ok ? r.text() : '<timetable/>';
+    } catch { return '<timetable/>'; }
+  }
+
+  // Build id→element map from fchg XML
+  function parseFchg(xml) {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const map = {};
+    for (const s of doc.querySelectorAll('s')) map[s.getAttribute('id')] = s;
+    return map;
+  }
+
+  // Parse trains from a single plan XML, filter by direction keyword in ppth
+  function parsePlan(xml, fchgMap, dirKeyword, cutoffTime) {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const trains = [];
+
+    for (const s of doc.querySelectorAll('s')) {
+      const dp = s.querySelector('dp');
+      if (!dp) continue;
+
+      const ppth = dp.getAttribute('ppth') || '';
+      if (!ppth.includes(dirKeyword)) continue;
+
+      const id  = s.getAttribute('id');
+      const tl  = s.querySelector('tl');
+
+      const plannedTime = parseIrisTs(dp.getAttribute('pt'));
+      if (!plannedTime || plannedTime < cutoffTime) continue;
+
+      // Line name: prefer dp[l], else dp[fb] (e.g. "ICE 1573"), else tl[c]+tl[n]
+      let line = dp.getAttribute('l') || dp.getAttribute('fb') || '';
+      if (!line && tl) {
+        const c = tl.getAttribute('c') || '';
+        const n = tl.getAttribute('n') || '';
+        line = (c + (n ? ' ' + n : '')).trim();
+      }
+
+      let currentTime = plannedTime;
+      let cancelled   = false;
+      let hasHint     = false;
+      let platform    = dp.getAttribute('pp') || '';
+
+      const chg = fchgMap[id];
+      if (chg) {
+        const cdp = chg.querySelector('dp');
+        if (cdp) {
+          const ct = cdp.getAttribute('ct');
+          if (ct) currentTime = parseIrisTs(ct) || plannedTime;
+          if (cdp.getAttribute('cs') === 'c') cancelled = true;
+          const cp = cdp.getAttribute('cp');
+          if (cp) platform = cp;
+        }
+        const hintMsg = chg.querySelector('m[t="h"]');
+        if (hintMsg) {
+          const cat = hintMsg.getAttribute('cat') || 'Information';
+          hasHint = cat; // store the category string
+        }
+      }
+
+      // Via stops: last 2 stops in ppth before the direction target
+      const stops     = ppth.split('|');
+      const targetIdx = stops.findIndex(s => s.includes(dirKeyword));
+      const before    = targetIdx > 0 ? stops.slice(0, targetIdx) : [];
+      const viaStops  = before.slice(-2).join(', ');
+
+      trains.push({
+        id, line, plannedTime, currentTime, cancelled,
+        hasHint, platform, viaStops,
+        delay: Math.max(0, Math.round((currentTime - plannedTime) / 60_000)),
+      });
+    }
+    return trains;
+  }
+
+  // =========================================================
+  //  OPEN-METEO RAIN API
+  // =========================================================
+  async function fetchRain(lat, lon) {
+    const url = [
+      'https://api.open-meteo.com/v1/forecast',
+      `?latitude=${lat}&longitude=${lon}`,
+      '&minutely_15=precipitation',
+      '&timezone=Europe%2FBerlin',
+      '&forecast_days=1',
+    ].join('');
+    try {
+      const r = await fetch(url);
+      if (!r.ok) return null;
+      return r.json();
+    } catch { return null; }
+  }
+
+  // Check if any precipitation in [windowStart, windowEnd)
+  function rainInWindow(rain, windowStart, windowEnd) {
+    if (!rain?.minutely_15) return { wet: false, startsInMin: null };
+    const { time, precipitation } = rain.minutely_15;
+    let startsInMin = null;
+    for (let i = 0; i < time.length; i++) {
+      const slotStart = new Date(time[i]);
+      const slotEnd   = new Date(+slotStart + 15 * 60_000);
+      if (precipitation[i] > 0.1 && slotEnd > windowStart && slotStart < windowEnd) {
+        // minutes from window start until rain slot begins
+        startsInMin = Math.max(0, Math.round((slotStart - windowStart) / 60_000));
+        return { wet: true, startsInMin };
+      }
+    }
+    return { wet: false, startsInMin: null };
+  }
+
+  // General: minutes from now until next rain (anywhere in the next 2 h)
+  function nextRainFromNow(rain) {
+    if (!rain?.minutely_15) return null;
+    const { time, precipitation } = rain.minutely_15;
+    const now = new Date();
+    const horizon = addMin(now, 120);
+    for (let i = 0; i < time.length; i++) {
+      const slotStart = new Date(time[i]);
+      if (slotStart < now || slotStart > horizon) continue;
+      if (precipitation[i] > 0.1) {
+        return Math.round((slotStart - now) / 60_000);
+      }
+    }
+    return null;
+  }
+
+  function isCurrentlyRaining(rain) {
+    if (!rain?.minutely_15) return false;
+    const { time, precipitation } = rain.minutely_15;
+    const now = new Date();
+    for (let i = 0; i < time.length; i++) {
+      const slotStart = new Date(time[i]);
+      const slotEnd   = new Date(+slotStart + 15 * 60_000);
+      if (slotStart <= now && now < slotEnd) return precipitation[i] > 0.1;
+    }
+    return false;
+  }
+
+  // =========================================================
+  //  LOAD ALL DATA
+  // =========================================================
+  async function loadAll() {
+    const morning   = isMorning();
+    const from      = morning ? CFG.giessen   : CFG.frankfurt;
+    const dirFilter = morning ? 'Frankfurt(Main)Hbf' : 'Gießen';
+    const travelMin = morning ? CFG.bikeMin   : CFG.walkMin;
+
+    // Fetch 3 h of plan + fchg + rain in parallel
+    const [p0, p1, p2xml, fchgXml, rain] = await Promise.all([
+      irisPlan(from.eva, 0),
+      irisPlan(from.eva, 1),
+      irisPlan(from.eva, 2),
+      irisFchg(from.eva),
+      fetchRain(from.lat, from.lon),
+    ]);
+
+    const fchgMap  = parseFchg(fchgXml);
+    const cutoff   = addMin(new Date(), -3); // include trains up to 3 min in past
+
+    // Merge, deduplicate, sort
+    const seen = new Set();
+    const trains = [
+      ...parsePlan(p0, fchgMap, dirFilter, cutoff),
+      ...parsePlan(p1, fchgMap, dirFilter, cutoff),
+      ...parsePlan(p2xml, fchgMap, dirFilter, cutoff),
+    ]
+    .filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; })
+    .sort((a, b) => a.currentTime - b.currentTime)
+    .slice(0, CFG.maxTrains);
+
+    // Annotate each train with rain window data
+    for (const t of trains) {
+      t.legStart = addMin(t.currentTime, -travelMin);
+      t.rain     = rainInWindow(rain, t.legStart, t.currentTime);
+    }
+
+    return { morning, trains, rain, travelMin, loadedAt: new Date() };
+  }
+
+  // =========================================================
+  //  RENDER
+  // =========================================================
+  function hintLabel(cat) {
+    if (cat === 'Störung')      return 'Störung gemeldet';
+    if (cat === 'Bauarbeiten')  return 'Bauarbeiten';
+    return 'aktuelle Hinweise vorhanden';
+  }
+
+  function rainStatusHTML(train, generalNextRain, currentlyRaining) {
+    if (train.rain.wet) {
+      const min = train.rain.startsInMin;
+      if (min === 0) return `<span class="raining">Regen ab Abfahrt</span>`;
+      return `Regen startet in ${min}&thinsp;min`;
+    }
+    if (currentlyRaining) return `<span class="raining">Aktuell Regen</span>`;
+    if (generalNextRain !== null) return `Regen in ca. ${generalNextRain}&thinsp;min`;
+    return 'Kein Regen erwartet';
+  }
+
+  function render(data) {
+    const { morning, trains, rain, loadedAt } = data;
+    const currentlyRaining = isCurrentlyRaining(rain);
+    const generalNextRain  = nextRainFromNow(rain);
+    const legLabel  = morning ? 'Mit dem Fahrrad losfahren um' : 'Zu Fuß zum Bahnhof um';
+    const destLabel = morning ? 'Frankfurt (Main) Hbf' : 'Gießen Hbf';
+    const modeText  = morning
+      ? 'Gießen → Frankfurt &nbsp;·&nbsp; Hinweg'
+      : 'Frankfurt → Gießen &nbsp;·&nbsp; Rückweg';
+
+    let html = `
+<div class="dashboard">
+  <div class="header">
+    <div class="header-clock" id="js-clock">${fmtTime(new Date())}&thinsp;Uhr</div>
+    <div class="header-meta">${modeText}</div>
+  </div>`;
+
+    const now2 = new Date();
+
+    if (trains.length === 0) {
+      html += `<div class="state-box">Keine Verbindungen in den nächsten 3 Stunden gefunden.</div>`;
+    } else {
+      const next = trains[0];
+      const nextMissed = next.legStart < now2; // bike window already passed
+
+      // ---- left column ----
+      const delayBadge = next.delay > 0
+        ? `<span class="delay-badge">+${next.delay}&thinsp;min</span>` : '';
+      const platformStr = next.platform ? `Gleis&thinsp;${next.platform}` : '';
+      const routeStr    = next.viaStops ? `über ${next.viaStops}` : '';
+
+      html += `
+  <div class="top-grid">
+    <div>
+      <div class="section-label">Nächste ${nextMissed ? 'angezeigte' : 'mögliche'} Verbindung</div>
+      ${next.cancelled ? '<div class="cancelled-badge">Zug fällt aus</div>' : ''}
+      <div class="next-departure-time" style="${next.cancelled ? 'opacity:0.35' : ''}">
+        ${fmtTime(next.currentTime)}${delayBadge}
+      </div>
+      <div class="next-line-name">${next.line}</div>
+      <div class="next-route">${destLabel}${routeStr ? '&nbsp;&nbsp;' + routeStr : ''}</div>
+      ${platformStr ? `<div class="next-platform">${platformStr}</div>` : ''}
+      ${next.hasHint && !next.cancelled ? `<div class="info-hint">Achtung: ${hintLabel(next.hasHint)}</div>` : ''}
+    </div>
+
+    <!-- right column -->
+    <div class="right-col">
+      <div class="leg-label">${legLabel}:</div>
+      <div class="leg-time" style="${nextMissed ? 'opacity:0.35;text-decoration:line-through' : ''}">${fmtTime(next.legStart)}</div>
+      ${nextMissed ? '<div style="font-size:13px;color:#e07800;margin-bottom:8px">Abfahrtszeit verpasst</div>' : ''}
+      <div class="rain-status${currentlyRaining ? ' raining' : ''}">
+        ${nextMissed ? '' : rainStatusHTML(next, generalNextRain, currentlyRaining)}
+      </div>
+      ${next.rain.wet && !nextMissed ? '<div class="rain-warning">Achtung Regenkleidung benötigt</div>' : ''}
+    </div>
+  </div>`;
+
+      // ---- more connections ----
+      const more = trains.slice(1);
+      if (more.length > 0) {
+        html += `<div class="more-connections"><div class="section-label">Weitere Verbindungen</div>`;
+        for (const t of more) {
+          const missed  = t.legStart < now2;
+          const dBadge  = t.delay > 0 ? `<span class="conn-delay">+${t.delay}&thinsp;min</span>` : '';
+          const rClass  = t.rain.wet ? 'wet' : (generalNextRain !== null ? '' : 'ok');
+          let rLabel;
+          if (t.rain.wet) {
+            rLabel = t.rain.startsInMin === 0
+              ? 'Regen ab Abfahrt'
+              : `Regen in ${t.rain.startsInMin}&thinsp;min`;
+          } else if (currentlyRaining) {
+            rLabel = 'Aktuell Regen';
+          } else if (generalNextRain !== null) {
+            rLabel = `Regen in ca. ${generalNextRain}&thinsp;min`;
+          } else {
+            rLabel = 'Kein Regen';
+          }
+
+          html += `
+<div class="conn-item" style="${missed ? 'opacity:0.45' : ''}">
+  <div class="conn-top-row">
+    <span class="conn-leg-time">Losfahren um ${fmtTime(t.legStart)}${missed ? ' <small>(verpasst)</small>' : ''}</span>
+    ${!missed ? `<span class="conn-rain-label ${rClass}">${rLabel}</span>` : ''}
+  </div>
+  <div class="conn-train-row ${t.cancelled ? 'cancelled-text' : ''}">
+    ${fmtTime(t.currentTime)}${dBadge}&ensp;·&ensp;${t.line}
+  </div>
+  <div class="conn-route">${destLabel}${t.viaStops ? ' &middot; ' + t.viaStops : ''}</div>
+</div>`;
+        }
+        html += `</div>`;
+      }
+    }
+
+    html += `
+  <div class="footer">Aktualisiert: ${fmtTime(loadedAt)} Uhr &nbsp;·&nbsp; Zugdaten: DB IRIS &nbsp;·&nbsp; Wetter: Open-Meteo</div>
+</div>`;
+
+    document.getElementById('root').innerHTML = html;
+  }
+
+  function renderError(msg) {
+    document.getElementById('root').innerHTML = `
+<div class="dashboard">
+  <div class="state-box error">
+    Fehler beim Laden der Daten.<br>
+    <small style="font-size:14px;opacity:0.7">${msg}</small>
+  </div>
+</div>`;
+  }
+
+  function updateClock() {
+    const el = document.getElementById('js-clock');
+    if (el) el.innerHTML = fmtTime(new Date()) + '&thinsp;Uhr';
+  }
+
+  // =========================================================
+  //  MAIN LOOP
+  // =========================================================
+  let state = null;
+
+  async function refresh() {
+    try {
+      state = await loadAll();
+      render(state);
+    } catch (e) {
+      renderError(e.message || String(e));
+    }
+  }
+
+  // Initial render: loading placeholder
+  document.getElementById('root').innerHTML = `
+<div class="dashboard">
+  <div class="state-box">Verbindungen werden geladen …</div>
+</div>`;
+
+  refresh();
+  setInterval(refresh, CFG.dataRefreshMs);
+  setInterval(updateClock, CFG.clockRefreshMs);
+  </script>
+</body>
+</html>
